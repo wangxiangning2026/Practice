@@ -1,0 +1,24 @@
+# Unity generated folders
+Practice Collection/Library/
+Practice Collection/Temp/
+Practice Collection/Obj/
+Practice Collection/Build/
+Practice Collection/Builds/
+Practice Collection/Logs/
+Practice Collection/UserSettings/
+
+# Package cache (不要提交包文件)
+Practice Collection/Library/PackageCache/
+Practice Collection/Packages/*/
+# 但保留 manifest.json 和 packages-lock.json
+!Practice Collection/Packages/manifest.json
+!Practice Collection/Packages/packages-lock.json
+
+# Visual Studio
+*.csproj
+*.sln
+.vs/
+
+# OS generated
+.DS_Store
+Thumbs.db
