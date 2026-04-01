@@ -76,3 +76,24 @@ Thumbs.db
 /Logs/
 /Build/
 /UserSettings/
+
+# JetBrains Rider
+.idea/
+*.sln.DotSettings
+*.sln.DotSettings.user
+*.user
+*.sln.iml
+
+# Visual Studio
+.vs/
+.vsconfig
+*.csproj
+*.sln
+
+# Unity
+/Library/
+/Temp/
+/obj/
+/Logs/
+/Build/
+/UserSettings/
