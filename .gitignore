@@ -22,3 +22,9 @@ Practice Collection/Packages/*/
 # OS generated
 .DS_Store
 Thumbs.db
+
+# Compiled assemblies
+/Practice Collection/Library/ScriptAssemblies/
+*.dll
+*.pdb
+*.mdb
