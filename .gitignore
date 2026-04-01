@@ -97,3 +97,15 @@ Thumbs.db
 /Logs/
 /Build/
 /UserSettings/
+
+# Unity user settings
+UserSettings/
+/Practice Collection/UserSettings/
+*.userprefs
+
+# Unity generated
+/Library/
+/Temp/
+/obj/
+/Logs/
+/Build/
