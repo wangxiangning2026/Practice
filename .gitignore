@@ -33,3 +33,10 @@ Thumbs.db
 /Practice Collection/obj/
 /Practice Collection/Obj/
 .idea/
+
+# Visual Studio / IDE files
+*.csproj
+*.unityproj
+*.sln
+.vs/
+.idea/
