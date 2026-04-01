@@ -49,3 +49,30 @@ Thumbs.db
 *.user
 *.suo
 .idea/
+
+# Visual Studio solution files
+*.sln
+*.csproj
+*.unityproj
+.vs/
+.vsconfig
+
+# JetBrains Rider
+*.sln.DotSettings.user
+*.user
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+.vsconfig
+*.csproj
+*.sln
+
+# Unity
+/Library/
+/Temp/
+/obj/
+/Logs/
+/Build/
+/UserSettings/
