@@ -40,3 +40,12 @@ Thumbs.db
 *.sln
 .vs/
 .idea/
+
+# Visual Studio
+.vs/
+.vsconfig
+*.csproj
+*.sln
+*.user
+*.suo
+.idea/
