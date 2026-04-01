@@ -7,7 +7,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-public class LoadingManager : MonoBehaviour
+public class LoadingManager : MonoSingleton<LoadingManager>
 {
     #region 加载场景
 
@@ -22,7 +22,7 @@ public class LoadingManager : MonoBehaviour
     /// <param name="success">场景资源加载完成后的回调</param> 
     /// <param name="fail">场景加载失败时的回调</param> 
     /// <returns>协程迭代器</returns> 
-    private IEnumerator LoadSceneAsync(string sceneFullPath, float startPercent = 0f, Action finish = null,
+    public IEnumerator LoadSceneAsync(string sceneFullPath, float startPercent = 0f, Action finish = null,
         Action success = null, Action fail = null)
     {
         if (loadedSceneHandles.ContainsKey(sceneFullPath))
