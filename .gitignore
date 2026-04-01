@@ -28,3 +28,7 @@ Thumbs.db
 *.dll
 *.pdb
 *.mdb
+
+# Compiled objects
+/Practice Collection/obj/
+/Practice Collection/Obj/
