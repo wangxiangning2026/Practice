@@ -1,22 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
-
-
-
-
-public class FMSStateBase : MonoBehaviour
+public class FMSStateBase : IFSMState
 {
-    // Start is called before the first frame update
-    void Start()
+    protected FSMController fsm;
+    public virtual string StateName => GetType().Name;
+
+    public FMSStateBase(FSMController controller)
     {
-        
+        fsm = controller;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public virtual void Enter() { }
+    public virtual void LogicalUpdate() { }
+    public virtual void LogicalFixedUpdate() { }
+    public virtual void Exit() { }
 }

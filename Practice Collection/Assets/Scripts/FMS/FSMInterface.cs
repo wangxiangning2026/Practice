@@ -1,6 +1,8 @@
 
 public interface IFSMState
 {
+    string StateName { get; }
+    
     /// <summary>
     /// 进入该状态时执行的
     /// </summary>
@@ -10,6 +12,8 @@ public interface IFSMState
     /// 相当于用Unity生命周期中的Update，用于逻辑更新
     /// </summary>
     void LogicalUpdate();
+    
+    void LogicalFixedUpdate();
 
     /// <summary>
     /// 状态结束时（即转移出时）执行的

@@ -7,10 +7,13 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement Settings")] [SerializeField]
     private float walkSpeed = 4f;
 
+    [SerializeField] private Animator animator;
+
     [SerializeField] private float runSpeed = 8f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private float gravity = -20f;
     [SerializeField] private float turnSmoothTime = 0.1f;
+    private float targetSpeed = 0f;
 
     [Header("Camera Settings")] [SerializeField]
     private Transform cameraTarget; // 摄像机看向的目标点
@@ -115,7 +118,7 @@ public class PlayerMovement : MonoBehaviour
 
         // 检测是否奔跑
         bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        float targetSpeed = isRunning ? runSpeed : walkSpeed;
+        targetSpeed = isRunning ? runSpeed : walkSpeed;
 
         // 获取摄像机的前方和右方方向（忽略俯仰角）
         Vector3 cameraForward = mainCamera.forward;
@@ -189,6 +192,9 @@ public class PlayerMovement : MonoBehaviour
         {
             isMoving = false;
         }
+
+        float currentspeed = isMoving ? isRunning ? runSpeed: walkSpeed : 0;
+        animator.SetFloat("targetSpeed", currentspeed);
     }
 
     void HandleJump()
@@ -216,21 +222,21 @@ public class PlayerMovement : MonoBehaviour
         if (scrollInput != 0f)
         {
             Debug.Log(scrollInput);
-        
+
             // 获取当前偏移值
-            float height = cameraOffset.y;     // Y轴：控制摄像机高度
-            float distance = cameraOffset.z;   // Z轴：控制摄像机前后距离
-        
+            float height = cameraOffset.y; // Y轴：控制摄像机高度
+            float distance = cameraOffset.z; // Z轴：控制摄像机前后距离
+
             // 修改距离（Z轴），而不是X轴
             distance -= scrollInput * zoomSpeed;
-        
+
             // 限制范围
-            distance = Mathf.Clamp(distance, -8f, -2f);  // 前后距离限制
-            height = Mathf.Clamp(height, 1f, 3f);        // 高度限制（可选）
-        
+            distance = Mathf.Clamp(distance, -8f, -2f); // 前后距离限制
+            height = Mathf.Clamp(height, 1f, 3f); // 高度限制（可选）
+
             // 更新cameraOffset
             cameraOffset = new Vector3(0f, height, distance);
-        
+
             Debug.Log($"New camera offset: height={height}, distance={distance}");
         }
     }
