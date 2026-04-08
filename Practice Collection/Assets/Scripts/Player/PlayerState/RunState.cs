@@ -13,15 +13,14 @@ public class RunState : FMSStateBase
         
     public override void Enter()
     {
-        character.PlayAnimation("Run");
-        character.SetAnimatorFloat("Speed", 1f);
+        character.SetAnimatorFloat("targetSpeed", character.runSpeed);
     }
 
     public override void LogicalFixedUpdate()
     {
         character.HandleMovement(character.runSpeed);
             
-        if (!character.isMoving)
+        if (!character.IsMoving())
         {
             fsm.ChangeState<IdleState>();
         }

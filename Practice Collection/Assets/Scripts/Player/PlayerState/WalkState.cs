@@ -13,29 +13,28 @@ public class WalkState : FMSStateBase
         
     public override void Enter()
     {
-        character.PlayAnimation("Walk");
-        character.SetAnimatorFloat("Speed", 0.5f);
+        character.SetAnimatorFloat("targetSpeed", character.walkSpeed);
     }
 
     public override void LogicalUpdate()
     {
-        float currentSpead = character.walkSpeed;
+        // 移动
+        character.HandleMovement(character.walkSpeed);
+        
         // 状态切换
-        if (!character.isMoving)
+        if (!character.IsMoving())
         {
             fsm.ChangeState<IdleState>();
         }
         else if (Input.GetKey(KeyCode.LeftShift))
         {
             fsm.ChangeState<RunState>();
-            currentSpead = character.runSpeed;
         }
         // else if (Input.GetButtonDown("Jump") && character.IsGrounded)
         // {
         //     fsm.ChangeState<JumpState>();
         // }
-        // 移动
-        character.HandleMovement(currentSpead);
+       
     }
 
     public override void LogicalFixedUpdate()

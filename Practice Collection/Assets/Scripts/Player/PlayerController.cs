@@ -56,6 +56,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool lookInMoveDirection = true; // 摄像机是否看向移动方向
 
     private AnimationManager animationManager;
+    
+    private FSMController fsm;
 
     void Start()
     {
@@ -63,26 +65,42 @@ public class PlayerController : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         playerTransform = transform;
         mainCamera = Camera.main.transform;
-
-        // If no camera target assigned, use player as target
+        
         if (cameraTarget == null)
             cameraTarget = playerTransform;
-
-        // Lock cursor
-        //Cursor.lockState = CursorLockMode.Locked;
-        //Cursor.visible = false;
-
-        // Initialize distance
+        
         currentDistance = defaultDistance;
         targetDistance = defaultDistance;
 
         targetPosition = mainCamera.position;
-        // Position camera initially
-        //UpdateCameraPosition(0f);
+
+        RegisterStates();
     }
 
+    private Vector2 moveInput;
+    public Vector2 MoveInput => moveInput;
+    
+    private void RegisterStates()
+    {
+        // 注册所有状态
+        fsm.RegisterStates(
+            new IdleState(fsm, this),
+            new WalkState(fsm, this),
+            new RunState(fsm, this)
+        );
+            
+        // 设置默认状态
+        fsm.SetDefaultState<IdleState>();
+        fsm.Initialize();
+    }
+    
     void Update()
     {
+        // 获取输入
+        moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            
+        // 状态切换条件放在Update中检查（更好的做法是放在各个状态内部）
+        
         HandleMouseLook();
         HandleZoom();
         //HandleJump();
@@ -110,11 +128,15 @@ public class PlayerController : MonoBehaviour
         xRotation = Mathf.Clamp(xRotation, minLookAngle, maxLookAngle);
     }
 
+    public bool IsMoving()
+    {
+        return Mathf.Abs(moveInput.y) > 0.1f || Mathf.Abs(moveInput.x) > 0.1f;
+    }
 
     public void HandleMovement(float speed)
     {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+        float horizontal = moveInput.x;
+        float vertical = moveInput.y;
 
         // 获取摄像机的前方和右方方向（忽略俯仰角）
         Vector3 cameraForward = mainCamera.forward;
@@ -128,156 +150,61 @@ public class PlayerController : MonoBehaviour
         cameraForward.Normalize();
         cameraRight.Normalize();
 
-        // 4. 仅当输入有效（过滤微小值）时处理移动
-        if (Mathf.Abs(vertical) > 0.1f || Mathf.Abs(horizontal) > 0.1f)
+        Vector3 moveDirection = Vector3.zero; // 最终移动方向
+        Vector3 facingDirection = Vector3.zero; // 角色朝向方向
+
+        // 处理W/S键：前后移动并转向
+        if (Mathf.Abs(vertical) > 0.1f)
         {
-            isMoving = true;
-            Vector3 moveDirection = Vector3.zero; // 最终移动方向
-            Vector3 facingDirection = Vector3.zero; // 角色朝向方向
-
-            // 处理W/S键：前后移动并转向
-            if (Mathf.Abs(vertical) > 0.1f)
+            if (vertical > 0) // W键：向前
             {
-                if (vertical > 0) // W键：向前
-                {
-                    facingDirection = cameraForward;
-                    moveDirection = cameraForward;
-                }
-                else // S键：向后
-                {
-                    facingDirection = -cameraForward;
-                    moveDirection = -cameraForward;
-                }
+                facingDirection = cameraForward;
+                moveDirection = cameraForward;
             }
-
-            // 处理A/D键：左右移动并转向
-            if (Mathf.Abs(horizontal) > 0.1f)
+            else // S键：向后
             {
-                if (horizontal > 0) // D键：向右
-                {
-                    facingDirection = cameraRight;
-                    moveDirection = cameraRight;
-                }
-                else // A键：向左
-                {
-                    facingDirection = -cameraRight;
-                    moveDirection = -cameraRight;
-                }
+                facingDirection = -cameraForward;
+                moveDirection = -cameraForward;
             }
-
-            // 如果同时有垂直和水平输入，使用合成方向
-            if (Mathf.Abs(vertical) > 0.1f && Mathf.Abs(horizontal) > 0.1f)
-            {
-                // 合成移动方向（斜向移动）
-                moveDirection = (cameraForward * vertical + cameraRight * horizontal).normalized;
-
-                // 面向合成方向
-                facingDirection = moveDirection;
-            }
-
-            // 应用旋转 - 面向移动方向
-            if (facingDirection != Vector3.zero)
-            {
-                playerTransform.rotation = Quaternion.LookRotation(facingDirection);
-            }
-
-            // 应用移动
-            characterController.Move(moveDirection * targetSpeed * Time.fixedDeltaTime);
         }
-        else
+
+        // 处理A/D键：左右移动并转向
+        if (Mathf.Abs(horizontal) > 0.1f)
         {
-            isMoving = false;
+            if (horizontal > 0) // D键：向右
+            {
+                facingDirection = cameraRight;
+                moveDirection = cameraRight;
+            }
+            else // A键：向左
+            {
+                facingDirection = -cameraRight;
+                moveDirection = -cameraRight;
+            }
         }
+
+        // 如果同时有垂直和水平输入，使用合成方向
+        if (Mathf.Abs(vertical) > 0.1f && Mathf.Abs(horizontal) > 0.1f)
+        {
+            // 合成移动方向（斜向移动）
+            moveDirection = (cameraForward * vertical + cameraRight * horizontal).normalized;
+
+            // 面向合成方向
+            facingDirection = moveDirection;
+        }
+
+        // 应用旋转 - 面向移动方向
+        if (facingDirection != Vector3.zero)
+        {
+            playerTransform.rotation = Quaternion.LookRotation(facingDirection);
+        }
+
+        // 应用移动
+        characterController.Move(moveDirection * targetSpeed * Time.fixedDeltaTime);
     }
 
     void HandleWalk(float speed)
     {
-    }
-
-    void bbb()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        // 检测是否奔跑
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
-        targetSpeed = isRunning ? runSpeed : walkSpeed;
-
-        // 获取摄像机的前方和右方方向（忽略俯仰角）
-        Vector3 cameraForward = mainCamera.forward;
-        Vector3 cameraRight = mainCamera.right;
-
-        // 忽略Y轴（防止摄像机抬头/低头时，角色沿Y轴上下移动）
-        cameraForward.y = 0f;
-        cameraRight.y = 0f;
-
-        // 归一化：确保摄像机方向向量长度为1，移动速度一致
-        cameraForward.Normalize();
-        cameraRight.Normalize();
-
-        // 4. 仅当输入有效（过滤微小值）时处理移动
-        if (Mathf.Abs(vertical) > 0.1f || Mathf.Abs(horizontal) > 0.1f)
-        {
-            isMoving = true;
-            Vector3 moveDirection = Vector3.zero; // 最终移动方向
-            Vector3 facingDirection = Vector3.zero; // 角色朝向方向
-
-            // 处理W/S键：前后移动并转向
-            if (Mathf.Abs(vertical) > 0.1f)
-            {
-                if (vertical > 0) // W键：向前
-                {
-                    facingDirection = cameraForward;
-                    moveDirection = cameraForward;
-                }
-                else // S键：向后
-                {
-                    facingDirection = -cameraForward;
-                    moveDirection = -cameraForward;
-                }
-            }
-
-            // 处理A/D键：左右移动并转向
-            if (Mathf.Abs(horizontal) > 0.1f)
-            {
-                if (horizontal > 0) // D键：向右
-                {
-                    facingDirection = cameraRight;
-                    moveDirection = cameraRight;
-                }
-                else // A键：向左
-                {
-                    facingDirection = -cameraRight;
-                    moveDirection = -cameraRight;
-                }
-            }
-
-            // 如果同时有垂直和水平输入，使用合成方向
-            if (Mathf.Abs(vertical) > 0.1f && Mathf.Abs(horizontal) > 0.1f)
-            {
-                // 合成移动方向（斜向移动）
-                moveDirection = (cameraForward * vertical + cameraRight * horizontal).normalized;
-
-                // 面向合成方向
-                facingDirection = moveDirection;
-            }
-
-            // 应用旋转 - 面向移动方向
-            if (facingDirection != Vector3.zero)
-            {
-                playerTransform.rotation = Quaternion.LookRotation(facingDirection);
-            }
-
-            // 应用移动
-            characterController.Move(moveDirection * targetSpeed * Time.fixedDeltaTime);
-        }
-        else
-        {
-            isMoving = false;
-        }
-
-        float currentspeed = isMoving ? isRunning ? runSpeed : walkSpeed : 0;
-        animator.SetFloat("targetSpeed", currentspeed);
     }
 
 
