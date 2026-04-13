@@ -56,19 +56,26 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool lookInMoveDirection = true; // 摄像机是否看向移动方向
 
     private AnimationManager animationManager;
-    
+
     private FSMController fsm;
 
     void Start()
     {
+        fsm = GetComponent<FSMController>();
         // Get components
+
+        if (animator == null)
+            animator = GetComponentInChildren<Animator>();
+
+        animationManager = GetComponent<AnimationManager>();
+
         characterController = GetComponent<CharacterController>();
         playerTransform = transform;
         mainCamera = Camera.main.transform;
-        
+
         if (cameraTarget == null)
             cameraTarget = playerTransform;
-        
+
         currentDistance = defaultDistance;
         targetDistance = defaultDistance;
 
@@ -79,31 +86,31 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveInput;
     public Vector2 MoveInput => moveInput;
-    
+
     private void RegisterStates()
     {
         // 注册所有状态
         fsm.RegisterStates(
             new IdleState(fsm, this),
             new WalkState(fsm, this),
-            new RunState(fsm, this)
+            new RunState(fsm, this),
+            new JumpState(fsm, this)
         );
-            
+
         // 设置默认状态
         fsm.SetDefaultState<IdleState>();
         fsm.Initialize();
     }
-    
+
     void Update()
     {
         // 获取输入
         moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-            
+
         // 状态切换条件放在Update中检查（更好的做法是放在各个状态内部）
-        
+
         HandleMouseLook();
         HandleZoom();
-        //HandleJump();
     }
 
     void FixedUpdate()
@@ -200,32 +207,29 @@ public class PlayerController : MonoBehaviour
         }
 
         // 应用移动
-        characterController.Move(moveDirection * targetSpeed * Time.fixedDeltaTime);
+        characterController.Move(moveDirection * speed * Time.fixedDeltaTime);
     }
 
-    void HandleWalk(float speed)
+    public bool IsGrounded()
     {
+        return characterController.isGrounded;
     }
 
-
-    void HandleJump()
+    public Vector3 GetVelocity()
     {
-        if (Input.GetButtonDown("Jump") && characterController.isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
-        }
+        return velocity;
     }
 
-    void ApplyGravity()
+    public void SetVelocity(Vector3 newVelocity)
     {
-        isGrounded = characterController.isGrounded;
-
-        if (isGrounded && velocity.y < 0)
-            velocity.y = -2f;
-
-        velocity.y += gravity * Time.fixedDeltaTime;
-        characterController.Move(velocity * Time.fixedDeltaTime);
+        velocity = newVelocity;
     }
+
+    public void MoveCharacter(Vector3 movement)
+    {
+        characterController.Move(movement);
+    }
+
 
     void HandleZoom()
     {
@@ -274,13 +278,27 @@ public class PlayerController : MonoBehaviour
         animationManager?.SetFloat(param, value);
     }
 
+    public void SetAnimatorBool(string param, bool value)
+    {
+        animationManager?.SetBool(param, value);
+    }
+
+    public void TriggerAnimator(string param)
+    {
+        if (animator != null)
+            animator.SetTrigger(param);
+    }
+
     private bool isCrouching;
-    public bool IsCrouching => isCrouching;
+
+    public bool IsCrouching
+    {
+        get => isCrouching;
+        set => isCrouching = value;
+    }
 
     public void SetCrouch(bool crouch)
     {
-        isCrouching = crouch;
-
         // 修改碰撞体大小
         // if (collider2D != null)
         // {
@@ -288,8 +306,11 @@ public class PlayerController : MonoBehaviour
         //     size.y = crouch ? crouchHeight : standHeight;
         //     // 调整碰撞体...
         // }
-
-        // 设置动画参数
-        animationManager?.SetBool("IsCrouching", crouch);
+    }
+    
+    public void Landed()
+    {
+        // 切换到落地状态或空闲状态
+        fsm.ChangeState<IdleState>();
     }
 }

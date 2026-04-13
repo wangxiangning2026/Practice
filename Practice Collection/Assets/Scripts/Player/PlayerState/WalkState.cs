@@ -18,9 +18,6 @@ public class WalkState : FMSStateBase
 
     public override void LogicalUpdate()
     {
-        // 移动
-        character.HandleMovement(character.walkSpeed);
-        
         // 状态切换
         if (!character.IsMoving())
         {
@@ -39,7 +36,8 @@ public class WalkState : FMSStateBase
 
     public override void LogicalFixedUpdate()
     {
-        // 可在此处理物理相关逻辑
+        // 移动
+        character.HandleMovement(character.walkSpeed);
     }
         
     public override void Exit()

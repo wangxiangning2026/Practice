@@ -19,22 +19,21 @@ public class IdleState : FMSStateBase
         // 下蹲切换
         if (Input.GetKeyDown(KeyCode.C))
         {
+            character.IsCrouching = !character.IsCrouching;
             character.SetCrouch(!character.IsCrouching);
-            character.PlayAnimation(character.IsCrouching ? "CrouchIdle" : "Idle");
-            return;
+            character.SetAnimatorBool("IsCrouching", character.IsCrouching);
         }
-        
         // 状态切换逻辑
-        if (character.IsMoving())
+        else if (character.IsMoving())
         {
             if (Input.GetKey(KeyCode.LeftShift))
                 fsm.ChangeState<RunState>();
             else
                 fsm.ChangeState<WalkState>();
         }
-        // else if (Input.GetButtonDown("Jump") && character.IsGrounded)
-        // {
-        //     fsm.ChangeState<JumpState>();
-        // }
+        else if (Input.GetButtonDown("Jump"))
+        {
+            fsm.ChangeState<JumpState>();
+        }
     }
 }
