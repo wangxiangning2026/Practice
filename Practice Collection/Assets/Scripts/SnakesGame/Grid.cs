@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Grid : MonoBehaviour
 {
+    public static Grid Instance;
     [Header("格子设置")]
     public float cellSize = 1.2f;
     public Vector2 gridOrigin = new Vector2(-4.22f, -2.82f);
