@@ -3,18 +3,17 @@ using UnityEngine;
 public class IdleState : FMSStateBase
 {
     private PlayerController character;
-        
+
     public IdleState(FSMController controller, PlayerController charCtrl) : base(controller)
     {
         character = charCtrl;
     }
-        
+
     public override void Enter()
     {
-        character.PlayAnimation("Idle");
-        character.SetAnimatorFloat("Speed", 0);
+        character.SetAnimatorFloat("targetSpeed", 0f);
     }
-        
+
     public override void LogicalUpdate()
     {
         // 下蹲切换
@@ -25,9 +24,8 @@ public class IdleState : FMSStateBase
             return;
         }
         
-        
         // 状态切换逻辑
-        if (character.isMoving)
+        if (character.IsMoving())
         {
             if (Input.GetKey(KeyCode.LeftShift))
                 fsm.ChangeState<RunState>();
