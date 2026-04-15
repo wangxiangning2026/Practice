@@ -35,3 +35,8 @@ Thumbs.db
 
 # Visual Studio Code
 .vscode/
+# 忽略Mono调试符号文件及对应meta
+*.mdb
+*.mdb.meta
+*.pdb
+*.pdb.meta
