@@ -2,35 +2,92 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// 网格单元格类型
+
 public class Grid : MonoBehaviour
 {
-    public static Grid Instance;
-    [Header("格子设置")]
-    public float cellSize = 1.2f;
-    public Vector2 gridOrigin = new Vector2(-4.22f, -2.82f);
-    public int width  = 8;
-    public int height = 7;
+    public static Grid instance;
+    public float cellSize = 1f;
+    public Vector2 origin;
 
-    // 世界坐标 → 格子坐标
-    public Vector2Int WorldToGridPos(Vector3 worldPos)
+    [Header("Sprites")]
+    public Sprite empty;
+    public Sprite obstacle;
+    public Sprite redTarget;
+    public Sprite greenTarget;
+    public Sprite blueTarget;
+    public Sprite yellowTarget;
+
+    //private LevelData currentLevel;
+
+    void Awake() => instance = this;
+
+    // 世界坐标 → 网格坐标
+    public Vector2Int WorldToGrid(Vector2 worldPos)
     {
-        float fx = (worldPos.x - gridOrigin.x) / cellSize;
-        float fy = (worldPos.y - gridOrigin.y) / cellSize;
-
-        int gx = Mathf.FloorToInt(fx);
-        int gy = Mathf.FloorToInt(fy);
-
-        gx = Mathf.Clamp(gx, 0, width - 1);
-        gy = Mathf.Clamp(gy, 0, height - 1);
-
-        return new Vector2Int(gx, gy);
+        int x = Mathf.RoundToInt((worldPos.x - origin.x) / cellSize);
+        int y = Mathf.RoundToInt((worldPos.y - origin.y) / cellSize);
+        return new Vector2Int(x, y);
     }
 
-    // 格子坐标 → 世界中心（蛇正好站格子里）
-    public Vector3 GridToWorldPos(Vector2Int gridPos)
+    // 网格坐标 → 世界坐标
+    public Vector2 GridToWorld(Vector2Int gridPos)
     {
-        float x = gridOrigin.x + gridPos.x * cellSize + cellSize * 0.5f;
-        float y = gridOrigin.y + gridPos.y * cellSize + cellSize * 0.5f;
-        return new Vector3(x, y, 0f);
+        return new Vector2(
+            origin.x + gridPos.x * cellSize,
+            origin.y + gridPos.y * cellSize
+        );
     }
+
+    // 生成地图（纯Sprite）
+    // public void GenerateLevel(LevelData level)
+    // {
+    //     currentLevel = level;
+    //     ClearAllChildren();
+    //
+    //     for (int x = 0; x < level.width; x++)
+    //     {
+    //         for (int y = 0; y < level.height; y++)
+    //         {
+    //             var type = level.grid[y * level.width + x];
+    //             CreateCell(x, y, type);
+    //         }
+    //     }
+    // }
+
+    void CreateCell(int x, int y, CellType type)
+    {
+        GameObject go = new GameObject($"Cell_{x}_{y}");
+        go.transform.parent = transform;
+        go.transform.position = GridToWorld(new Vector2Int(x, y));
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = GetSprite(type);
+        sr.sortingOrder = 0;
+    }
+
+    Sprite GetSprite(CellType type) => type switch
+    {
+        CellType.Obstacle => obstacle,
+        CellType.TargetRed => redTarget,
+        CellType.TargetGreen => greenTarget,
+        CellType.TargetBlue => blueTarget,
+        CellType.TargetYellow => yellowTarget,
+        _ => empty
+    };
+
+    void ClearAllChildren()
+    {
+        for (int i = transform.childCount - 1; i >= 0; i--)
+            DestroyImmediate(transform.GetChild(i).gameObject);
+    }
+
+    // public bool IsValidCell(Vector2Int pos)
+    // {
+    //     if (pos.x < 0 || pos.x >= currentLevel.width || pos.y < 0 || pos.y >= currentLevel.height)
+    //         return false;
+    //
+    //     var type = currentLevel.grid[pos.y * currentLevel.width + pos.x];
+    //     return type != CellType.Obstacle;
+    // }
 }

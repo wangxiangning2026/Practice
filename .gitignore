@@ -1,111 +1,37 @@
-# Unity generated folders
-Practice Collection/Library/
-Practice Collection/Temp/
-Practice Collection/Obj/
-Practice Collection/Build/
-Practice Collection/Builds/
-Practice Collection/Logs/
-Practice Collection/UserSettings/
+# Unity 生成的文件（大小写不敏感）
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Uu]ser[Ss]ettings/
+TempFileBackups/
 
-# Package cache (不要提交包文件)
-Practice Collection/Library/PackageCache/
-Practice Collection/Packages/*/
-# 但保留 manifest.json 和 packages-lock.json
-!Practice Collection/Packages/manifest.json
-!Practice Collection/Packages/packages-lock.json
-
-# Visual Studio
-*.csproj
-*.sln
-.vs/
-
-# OS generated
-.DS_Store
-Thumbs.db
-
-# Compiled assemblies
-/Practice Collection/Library/ScriptAssemblies/
-*.dll
-*.pdb
+# 编译产物（绝对不要提交）
 *.mdb
+*.pdb
 
-# Compiled objects
-/Practice Collection/obj/
-/Practice Collection/Obj/
+# Package 缓存（只保留配置文件）
+[Pp]ackages/*/
+![Pp]ackages/manifest.json
+![Pp]ackages/packages-lock.json
+
+# IDE 配置文件
+.vs/
 .idea/
-
-# Visual Studio / IDE files
 *.csproj
 *.unityproj
 *.sln
-.vs/
-.idea/
-
-# Visual Studio
-.vs/
-.vsconfig
-*.csproj
-*.sln
-*.user
 *.suo
-.idea/
-
-# Visual Studio solution files
-*.sln
-*.csproj
-*.unityproj
-.vs/
-.vsconfig
-
-# JetBrains Rider
-*.sln.DotSettings.user
 *.user
-.idea/
-*.sln.iml
-
-# Visual Studio
-.vs/
-.vsconfig
-*.csproj
-*.sln
-
-# Unity
-/Library/
-/Temp/
-/obj/
-/Logs/
-/Build/
-/UserSettings/
-
-# JetBrains Rider
-.idea/
-*.sln.DotSettings
-*.sln.DotSettings.user
-*.user
-*.sln.iml
-
-# Visual Studio
-.vs/
-.vsconfig
-*.csproj
-*.sln
-
-# Unity
-/Library/
-/Temp/
-/obj/
-/Logs/
-/Build/
-/UserSettings/
-
-# Unity user settings
-UserSettings/
-/Practice Collection/UserSettings/
 *.userprefs
 
-# Unity generated
-/Library/
-/Temp/
-/obj/
-/Logs/
-/Build/
+# 系统文件
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Visual Studio Code
+.vscode/

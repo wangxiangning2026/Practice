@@ -4,83 +4,106 @@ using UnityEngine;
 
 public class SnakeMove : MonoBehaviour
 {
-    [Header("核心设置")] public GameObject nodePrefab;
-    public int bodyLength = 5; // 身体节点数（不含头尾）
-    public LineRenderer lineRenderer;
+    public static SnakeMove instance;
+    //public LevelData currentLevel;
+    public GameObject nodePrefab;
+    public List<SnakeNode> nodes = new();
 
-    private List<SnakeNode> nodeList = new List<SnakeNode>();
-    private int selectedNodeIndex = -1;
-    private Vector3 mouseOffset;
+    void Awake() => instance = this;
 
-    void HandleInput()
+    // 生成蛇
+    // public void SpawnSnake()
+    // {
+    //     ClearNodes();
+    //     foreach (var data in currentLevel.snakeNodes)
+    //     {
+    //         var go = Instantiate(nodePrefab, transform);
+    //         var node = go.GetComponent<SnakeNode>();
+    //         node.Init(this, data);
+    //         nodes.Add(node);
+    //     }
+    // }
+
+    // 尝试移动头/尾
+    public void TryMove(SnakeNode dragNode, Vector2Int targetPos)
     {
-        if (Input.GetMouseButtonDown(0))
+        //if (!GridManager.instance.IsValidCell(targetPos)) return;
+        if (IsOnSnake(targetPos)) return;
+
+        if (dragNode.data.isHead)
+            MoveHead(targetPos);
+        else if (dragNode.data.isTail)
+            MoveTail(targetPos);
+
+        // if (CheckWin())
+        //     Debug.Log("✅ 关卡通关！");
+    }
+
+    // 移动头 → 身体依次跟进
+    void MoveHead(Vector2Int newHeadPos)
+    {
+        Vector2Int prev = nodes[0].data.gridPos;
+        nodes[0].SetPosition(newHeadPos);
+
+        for (int i = 1; i < nodes.Count; i++)
         {
-            SelectNode();
-        }
-        else if (Input.GetMouseButton(0) && selectedNodeIndex != -1)
-        {
-            DragNode();
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            selectedNodeIndex = -1;
+            Vector2Int temp = nodes[i].data.gridPos;
+            nodes[i].SetPosition(prev);
+            prev = temp;
         }
     }
 
-    // 选中节点（通过射线检测）
-    void SelectNode()
+    // 移动尾 → 身体依次跟进
+    void MoveTail(Vector2Int newTailPos)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        Vector2Int prev = nodes[^1].data.gridPos;
+        nodes[^1].SetPosition(newTailPos);
+
+        for (int i = nodes.Count - 2; i >= 0; i--)
         {
-            SnakeNode node = hit.collider.GetComponent<SnakeNode>();
-            if (node != null && node.isHead)
-            {
-                selectedNodeIndex = node.Index;
-                mouseOffset = hit.point - hit.collider.transform.position;
-            }
+            Vector2Int temp = nodes[i].data.gridPos;
+            nodes[i].SetPosition(prev);
+            prev = temp;
         }
     }
 
-    // 拖动节点
-    void DragNode()
+    // 检测是否在蛇身上
+    bool IsOnSnake(Vector2Int pos)
     {
-        // 1. 获取鼠标世界位置并转换为网格坐标
-        Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        mouseWorld.z = 0; // 2D游戏
-        Vector2Int targetGridPos = Grid.Instance.WorldToGridPos(mouseWorld);
+        foreach (var n in nodes)
+            if (n.data.gridPos == pos)
+                return true;
+        return false;
+    }
 
-        // 2. 计算目标世界位置（格子中心）
-        Vector3 targetWorldPos = Grid.Instance.GridToWorldPos(targetGridPos);
+    // 胜利条件：颜色圆点都在对应目标格
+    // public bool CheckWin()
+    // {
+    //     foreach (var node in nodes)
+    //     {
+    //         if (node.data.dotColor == Color.clear) continue;
+    //
+    //         Vector2Int p = node.data.gridPos;
+    //         CellType cell = currentLevel.grid[p.y * currentLevel.width + p.x];
+    //         CellType target = ColorToCell(node.data.dotColor);
+    //
+    //         if (cell != target) return false;
+    //     }
+    //     return true;
+    // }
 
-        // 3. 移动选中的节点
-        nodeList[selectedNodeIndex].transform.position = targetWorldPos - mouseOffset;
+    CellType ColorToCell(Color c)
+    {
+        if (c == Color.red) return CellType.TargetRed;
+        if (c == Color.green) return CellType.TargetGreen;
+        if (c == Color.blue) return CellType.TargetBlue;
+        if (c == Color.yellow) return CellType.TargetYellow;
+        return CellType.Empty;
+    }
 
-        // 4. 关键逻辑：身体跟随
-        // 如果拖动的是头，身体跟着头动
-        if (selectedNodeIndex == 0)
-        {
-            for (int i = 1; i < nodeList.Count; i++)
-            {
-                Vector3 targetPos = nodeList[i - 1].transform.position;
-                // 保持固定距离移动
-                nodeList[i].transform.position =
-                    Vector3.Lerp(nodeList[i].transform.position, targetPos, Time.deltaTime * 10f);
-            }
-        }
-        // 如果拖动的是尾，身体倒着跟动（模拟整条蛇拖动）
-        else if (selectedNodeIndex == nodeList.Count - 1)
-        {
-            for (int i = nodeList.Count - 2; i >= 0; i--)
-            {
-                Vector3 targetPos = nodeList[i + 1].transform.position;
-                nodeList[i].transform.position =
-                    Vector3.Lerp(nodeList[i].transform.position, targetPos, Time.deltaTime * 10f);
-            }
-        }
-
-        // 5. 检查颜色匹配（如果需要）
-        //CheckColorMatch();
+    void ClearNodes()
+    {
+        foreach (var n in nodes) Destroy(n.gameObject);
+        nodes.Clear();
     }
 }
