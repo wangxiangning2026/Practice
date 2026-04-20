@@ -4,49 +4,61 @@ using UnityEngine;
 
 public class SnakeNode : MonoBehaviour
 {
-    public SnakeNodeData data;
-    public SpriteRenderer bodyRenderer;
-    public SpriteRenderer dotRenderer;
-    public bool isDragging;
+    [Header("节点数据")]
+    public SnakeNodeData nodeData;
+    public SpriteRenderer sr;
+    public bool isHead;
+    public bool isTail;
 
-    private SnakeMove snake;
+    private Snake _snake;
+    private bool _isDragging;
 
-    public void Init(SnakeMove snake, SnakeNodeData data)
+    // 初始化节点
+    public void Init(Snake snake, SnakeNodeData data, Sprite nodeSprite)
     {
-        this.snake = snake;
-        this.data = data;
-        dotRenderer.color = data.dotColor;
-        transform.position = Grid.instance.GridToWorld(data.gridPos);
+        _snake = snake;
+        nodeData = data;
+        sr.sprite = nodeSprite;
+        transform.position = Grid.Instance.GridToWorld(data.gridPos);
     }
 
-    // 鼠标按下
-    void OnMouseDown()
+    // 鼠标按下：只有头/尾可拖动
+    private void OnMouseDown()
     {
-        if (!data.isHead && !data.isTail) return;
-        isDragging = true;
+        if (!nodeData.isHead && !nodeData.isTail) return;
+        _isDragging = true;
     }
 
-    // 鼠标拖动
-    void OnMouseDrag()
+    // 鼠标拖动：只允许上下左右一格移动
+    private void OnMouseDrag()
     {
-        if (!isDragging) return;
-        Vector2 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2Int targetGrid = Grid.instance.WorldToGrid(mouseWorld);
+        if (!_isDragging) return;
+        
+        // 屏幕坐标转世界坐标，再转网格坐标
+        Vector2 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2Int targetGridPos = Grid.Instance.WorldToGrid(mouseWorldPos);
 
-        if (targetGrid == data.gridPos) return;
-        if (Mathf.Abs(targetGrid.x - data.gridPos.x) + Mathf.Abs(targetGrid.y - data.gridPos.y) != 1)
-            return; // 只允许上下左右一格
+        // 只允许相邻格子（曼哈顿距离=1，禁止斜向）
+        if (!Mathf.Approximately(Vector2.Distance(targetGridPos, nodeData.gridPos), 1))
+            return;
 
-        snake.TryMove(this, targetGrid);
+        // 通知蛇移动
+        if (nodeData.isHead)
+            _snake.TryMoveHead(targetGridPos);
+        else
+            _snake.TryMoveTail(targetGridPos);
     }
 
-    // 鼠标抬起
-    void OnMouseUp() => isDragging = false;
-
-    // 移动到目标网格
-    public void SetPosition(Vector2Int gridPos)
+    // 鼠标抬起：结束拖动
+    private void OnMouseUp()
     {
-        data.gridPos = gridPos;
-        transform.position = Grid.instance.GridToWorld(gridPos);
+        _isDragging = false;
+    }
+
+    // 更新节点位置（蛇移动时调用）
+    public void UpdatePosition(Vector2 newGridPos)
+    {
+        nodeData.gridPos = newGridPos;
+        transform.position = Grid.Instance.GridToWorld(newGridPos);
     }
 }
