@@ -108,32 +108,8 @@ public class PlayerController : MonoBehaviour
         moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
 
         // 状态切换条件放在Update中检查（更好的做法是放在各个状态内部）
-
-        HandleMouseLook();
-        HandleZoom();
     }
-
-    void FixedUpdate()
-    {
-        //HandleMovement();
-        //ApplyGravity();
-    }
-
-    void LateUpdate()
-    {
-        UpdateCameraPosition();
-    }
-
-    void HandleMouseLook()
-    {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
-
-        mainCamera.Rotate(Vector3.up * mouseX);
-
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, minLookAngle, maxLookAngle);
-    }
+    
 
     public bool IsMoving()
     {
@@ -229,44 +205,9 @@ public class PlayerController : MonoBehaviour
     {
         characterController.Move(movement);
     }
-
-
-    void HandleZoom()
-    {
-        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
-        if (scrollInput != 0f)
-        {
-            Debug.Log(scrollInput);
-
-            // 获取当前偏移值
-            float height = cameraOffset.y; // Y轴：控制摄像机高度
-            float distance = cameraOffset.z; // Z轴：控制摄像机前后距离
-
-            // 修改距离（Z轴），而不是X轴
-            distance -= scrollInput * zoomSpeed;
-
-            // 限制范围
-            distance = Mathf.Clamp(distance, -8f, -2f); // 前后距离限制
-            height = Mathf.Clamp(height, 1f, 3f); // 高度限制（可选）
-
-            // 更新cameraOffset
-            cameraOffset = new Vector3(0f, height, distance);
-
-            Debug.Log($"New camera offset: height={height}, distance={distance}");
-        }
-    }
+    
 
     [SerializeField] private Vector3 cameraOffset = new Vector3(0f, 2f, -5f); // 摄像机相对角色的固定偏移
-
-    void UpdateCameraPosition()
-    {
-        // 计算摄像机应该在的位置（基于角色当前朝向）
-        Vector3 desiredPosition = transform.position + cameraOffset;
-
-        // 平滑移动到目标位置（跟随人物移动方向）
-        targetPosition = Vector3.Lerp(targetPosition, desiredPosition, Time.deltaTime * followSpeed);
-        mainCamera.position = targetPosition;
-    }
 
     public void PlayAnimation(string animName, float crossFade = 0.1f)
     {
