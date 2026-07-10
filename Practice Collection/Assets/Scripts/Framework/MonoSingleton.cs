@@ -20,24 +20,21 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoBehaviour
             {
                 lock (_lock)
                 {
+                    // 尝试在场景中查找（防止手动拖入场景的情况）
+                    _instance = FindObjectOfType<T>();
+                        
+                    // 如果场景中也没有，则动态创建
                     if (_instance == null)
                     {
-                        // 尝试在场景中查找（防止手动拖入场景的情况）
-                        _instance = FindObjectOfType<T>();
-                        
-                        // 如果场景中也没有，则动态创建
-                        if (_instance == null)
-                        {
-                            GameObject singletonObject = new GameObject(typeof(T).Name + " (Singleton)");
-                            _instance = singletonObject.AddComponent<T>();
-                            // 3. 关键：确保跨场景不销毁
-                            DontDestroyOnLoad(singletonObject); 
-                        }
-                        else
-                        {
-                            // 如果是场景中找到的，也建议加上 DontDestroyOnLoad
-                            DontDestroyOnLoad(_instance.gameObject);
-                        }
+                        GameObject singletonObject = new GameObject(typeof(T).Name + " (Singleton)");
+                        _instance = singletonObject.AddComponent<T>();
+                        // 3. 关键：确保跨场景不销毁
+                        DontDestroyOnLoad(singletonObject); 
+                    }
+                    else
+                    {
+                        // 如果是场景中找到的，也建议加上 DontDestroyOnLoad
+                        DontDestroyOnLoad(_instance.gameObject);
                     }
                 }
             }
@@ -59,7 +56,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // 5. 可选：程序退出时清理引用，防止编辑器下的脏数据
+    // 5. 程序退出时清理引用，防止编辑器下的脏数据
     protected virtual void OnDestroy()
     {
         if (_instance == this)
