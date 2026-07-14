@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.SceneManagement;
 
 public class ResourceManager : MonoSingleton<ResourceManager>
 {
@@ -78,9 +79,27 @@ public class ResourceManager : MonoSingleton<ResourceManager>
     /// <summary>
     /// 异步加载
     /// </summary>
-    private IEnumerator LoadSceneAsync(string sceneFullPath, float startPercent, Action success, Action<bool> finish)
+    private IEnumerator LoadSceneAsync(string scenePath, float startPercent, Action success, Action<bool> finish)
     {
-        yield return null;
+        var handle = Addressables.LoadSceneAsync(scenePath, LoadSceneMode.Single, false); // 异步加载场景
+        
+        Debug.Log("开始异步加载场景");
+        float curProgress = 0;
+        while (handle is { IsDone: false })
+        {
+            curProgress = Mathf.Max(curProgress, handle.PercentComplete);   // 确保进度百分比不会回退
+            yield return null;
+        }
+
+        if (handle.Status != AsyncOperationStatus.Succeeded)
+        {
+            Debug.LogError("场景资源加载失败");
+            yield break;
+        }
+
+        var scenehandle = handle.Result.ActivateAsync();
+        yield return scenehandle;
+        Debug.Log("场景加载完成");
     }
 
     /// <summary>
