@@ -20,7 +20,7 @@ public enum UILayer
 public class UIViewInfo
 {
     public UIViewType ViewType;           // 界面名称（唯一标识）
-    public UIFormBase ViewInstance;       // 界面实例
+    public UIViewBase ViewInstance;       // 界面实例
     public UILayer Layer;             // 所属层级
 }
 
@@ -38,9 +38,9 @@ public enum UIViewState
 
 public enum UIViewType
 {
-    None,
-    LoadView,  //登录界面
-    MainView,   //主界面
+    None = 0,
+    LoadView = 1,  //登录界面
+    MainView = 2,   //主界面
 }
 
 /// <summary>

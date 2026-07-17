@@ -7,10 +7,14 @@ using UnityEngine;
 /// </summary>
 public class UIManager : MonoSingleton<UIManager>
 {
+    [SerializeField]
+    [FieldName("View预制体")] public Dictionary<UIViewType, GameObject> viewPrefab = new ();
     private UIViewInfo currentView;
     
     // 所有已加载的UI
     private Dictionary<UIViewType, UIViewInfo> loadedViews = new Dictionary<UIViewType, UIViewInfo>();
+
+    private Dictionary<UIViewType, GameObject> InitViews = new();
 
     // UI栈（用于管理界面返回逻辑）
     private Stack<UIViewInfo> viewStack = new Stack<UIViewInfo>();
@@ -18,9 +22,9 @@ public class UIManager : MonoSingleton<UIManager>
     #region 打开UI（核心方法）
 
     /// <summary>
-    /// UI加载和切换
+    /// UI Adressable 异步加载
     /// </summary>
-    public void OpenUIAsync<T>(object args = null, Action<T> onComplete = null, bool usePool = false) where T : UIFormBase
+    public void OpenUIAsync<T>(object args = null, Action<T> onComplete = null, bool usePool = false) where T : UIViewBase
     {
         UIViewType viewType = (UIViewType)Enum.Parse(typeof(UIViewType),typeof(T).Name);
         Type type = typeof(T);
@@ -34,7 +38,7 @@ public class UIManager : MonoSingleton<UIManager>
                 viewInfo.ViewInstance.OnRefresh();
                 return;
             }
-            ChangeView(viewInfo, args);
+            ChangeView(viewInfo);
             return;
         }
         
@@ -54,9 +58,32 @@ public class UIManager : MonoSingleton<UIManager>
             }
 
             // 后续初始化流程与同步加载相同
-            InitializeView(form, args, usePool);
+            InitializeView(form);
             onComplete?.Invoke(form);
         });
+    }
+
+    /// <summary>
+    /// UI prefab 实例化
+    /// </summary>
+    public void OpenUI<T>()
+    {
+        UIViewType viewType = (UIViewType)Enum.Parse(typeof(UIViewType), typeof(T).Name);
+        if(loadedViews.TryGetValue(viewType, out UIViewInfo viewInfo))
+        {
+            if (currentView.ViewType == viewType)
+            {
+                viewInfo.ViewInstance.OnRefresh();
+                return;
+            }
+            ChangeView(viewInfo);
+            return;
+        }
+        if(viewPrefab.TryGetValue(viewType,out var prefab))
+        {
+            UIViewBase view = Instantiate(prefab, transform).GetComponent<UIViewBase>();
+            InitializeView(view);
+        }
     }
     
     private string GetAddressableKey(Type type)
@@ -66,9 +93,8 @@ public class UIManager : MonoSingleton<UIManager>
         return type.Name;
     }
     
-    private void InitializeView<T>(T view, object args, bool usePool) where T : UIFormBase
+    private void InitializeView<T>(T view) where T : UIViewBase
     {
-        view.OnInit();
         UILayer layer = view.Layer;
         UIViewInfo info = new UIViewInfo
         {
@@ -78,13 +104,12 @@ public class UIManager : MonoSingleton<UIManager>
         };
         loadedViews[info.ViewType] = info;
         
-        ChangeView(info, args);
-
-        view.OnOpen(args);
+        ChangeView(info);
+        
         Debug.Log($"[UIManager] 异步打开UI: {info.ViewType}");
     }
 
-    private void ChangeView(UIViewInfo targetView, object args)
+    private void ChangeView(UIViewInfo targetView)
     {
         // 1. 暂停当前面板
         if (currentView != null && currentView.ViewType != targetView.ViewType)
